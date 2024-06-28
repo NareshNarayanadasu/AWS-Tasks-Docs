@@ -18,7 +18,7 @@
 ## Step 3: Create Lambda Function
 
 1. Go to the Lambda console and create a new Lambda function.
-2. Choose a runtime (e.g., Python 3.8).
+2. Choose a runtime (e.g., Python 3.11).
 
 ## Step 4: Configure S3 Bucket Notification
 
