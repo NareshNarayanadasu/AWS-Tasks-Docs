@@ -1,180 +1,148 @@
+Here is the complete setup, combining the installation and configuration of `kubeadm`, `containerd`, and resolving the RPC error into a single file with detailed comments, all in Markdown format.
 
 ```markdown
-# Kubernetes Cluster Setup on Ubuntu 22.04
+# Kubernetes Worker Node Setup
 
-## Master Node Setup
+## Install and Configure containerd, kubeadm, and Resolve RPC Error
 
-### Set Hostname for the Master Node
+### 1. Set Hostname for Worker Node
+
+#### Set Hostname for the Worker Node
 ```bash
-sudo hostnamectl set-hostname "k8smaster.example.net"
+# Set the hostname for the worker node
+sudo hostnamectl set-hostname "k8sworker.example.net"
 exec bash
 ```
 
-### Add Kubernetes Repository and Install Dependencies
+### 2. Add Kubernetes Repository and Install Dependencies
 
 #### Update Package Lists
 ```bash
+# Update package lists
 sudo apt-get update
 ```
 
-#### Install Dependencies: curl and apt-transport-https
+#### Install Dependencies: curl, gnupg2, apt-transport-https, and ca-certificates
 ```bash
-sudo apt-get install -y curl apt-transport-https
+# Install necessary dependencies
+sudo apt-get install -y curl gnupg2 software-properties-common apt-transport-https ca-certificates
 ```
 
-### Download Kubernetes Repository GPG Key and Add Repository
+### 3. Enable Docker Repository for containerd Installation
 
-#### Download GPG Key
+#### Add Docker's Official GPG Key
 ```bash
+# Add Docker's official GPG key
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+```
+
+#### Set Up the Docker Stable Repository
+```bash
+# Set up Docker stable repository
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+### 4. Install containerd
+
+#### Update Package Lists Again
+```bash
+# Update package lists to include Docker repository
+sudo apt-get update
+```
+
+#### Install containerd
+```bash
+# Install containerd runtime
+sudo apt-get install -y containerd.io
+```
+
+### 5. Configure containerd
+
+#### Create Default Configuration File for containerd
+```bash
+# Create configuration directory for containerd
+sudo mkdir -p /etc/containerd
+
+# Generate default containerd configuration file
+sudo containerd config default | sudo tee /etc/containerd/config.toml > /dev/null
+```
+
+#### Modify Configuration to Use systemd as cgroup
+```bash
+# Modify containerd configuration to use systemd as the cgroup driver
+sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+```
+
+### 6. Restart and Enable containerd Service
+```bash
+# Restart containerd service to apply changes
+sudo systemctl restart containerd
+
+# Enable containerd service to start on boot
+sudo systemctl enable containerd
+```
+
+### 7. Verify containerd Service is Running
+```bash
+# Check the status of containerd service
+sudo systemctl status containerd
+```
+
+### 8. Add Kubernetes Repository
+
+#### Download Kubernetes Repository GPG Key
+```bash
+# Download Kubernetes repository GPG key
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 ```
 
 #### Add Kubernetes Repository
 ```bash
+# Add Kubernetes repository to sources list
 echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
 ```
 
+### 9. Install Kubernetes Tools: kubelet, kubeadm, kubectl
+
 #### Update Package Lists Again
 ```bash
+# Update package lists to include Kubernetes repository
 sudo apt-get update
 ```
 
-### Install Kubernetes Tools: kubelet, kubeadm, kubectl
-
 #### Install Kubernetes Tools
 ```bash
+# Install kubelet, kubeadm, and kubectl
 sudo apt-get install -y kubelet kubeadm kubectl
 ```
 
-### Hold Kubernetes Tools at Current Version
+#### Hold Kubernetes Tools at Current Version
 ```bash
+# Prevent Kubernetes tools from being updated
 sudo apt-mark hold kubelet kubeadm kubectl
 ```
 
-### Disable Swap to Meet Kubernetes Requirements
+### 10. Disable Swap to Meet Kubernetes Requirements
 
 #### Disable Swap
 ```bash
+# Disable swap
 sudo swapoff -a
 ```
 
 #### Comment Out Swap Entries in `/etc/fstab`
 ```bash
+# Comment out any swap entries in /etc/fstab
 sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 ```
 
-### Initialize Kubernetes Master Node
+### 11. Join the Kubernetes Cluster
 
-#### Initialize Kubernetes Control Plane
+#### Use kubeadm to Join the Cluster
 ```bash
-sudo kubeadm init --control-plane-endpoint=k8smaster.example.net
+# Join the Kubernetes cluster using the provided join command
+sudo kubeadm join k8smaster.example.net:6443 --token 7fcot2.3lzodp5r8lua51dc --discovery-token-ca-cert-hash sha256:584987ee7ff21143dbcd01574d12baa2772571174e5fb33d1368e6b5fb420333
 ```
 
-### Set Up kubectl Configuration for the Ubuntu User
-
-#### Create `.kube` Directory
-```bash
-mkdir -p $HOME/.kube
-```
-
-#### Copy Kubernetes Configuration to User's `.kube` Directory
-```bash
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-```
-
-#### Set Ownership of `.kube/config` to the Current User
-```bash
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
-```
-
-### Output Join Command for Worker Nodes to Join the Cluster
-
-#### Print Join Command for Worker Nodes
-```bash
-kubeadm token create --print-join-command
-```
-
-## Worker Node Setup
-
-### Set Hostname for Each Worker Node
-
-#### Set Hostname for First Worker Node
-```bash
-sudo hostnamectl set-hostname "k8sworker1.example.net"
-exec bash
-```
-
-#### Set Hostname for Second Worker Node
-```bash
-sudo hostnamectl set-hostname "k8sworker2.example.net"
-exec bash
-```
-
-### Add Kubernetes Repository and Install Dependencies (Same as Master Node)
-
-#### Update Package Lists
-```bash
-sudo apt-get update
-```
-
-#### Install Dependencies: curl and apt-transport-https
-```bash
-sudo apt-get install -y curl apt-transport-https
-```
-
-### Download Kubernetes Repository GPG Key and Add Repository (Same as Master Node)
-
-#### Download GPG Key
-```bash
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-```
-
-#### Add Kubernetes Repository
-```bash
-echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
-```
-
-#### Update Package Lists Again
-```bash
-sudo apt-get update
-```
-
-### Install Kubernetes Tools: kubelet, kubeadm, kubectl (Same as Master Node)
-
-#### Install Kubernetes Tools
-```bash
-sudo apt-get install -y kubelet kubeadm kubectl
-```
-
-### Disable Swap to Meet Kubernetes Requirements (Same as Master Node)
-
-#### Disable Swap
-```bash
-sudo swapoff -a
-```
-
-#### Comment Out Swap Entries in `/etc/fstab`
-```bash
-sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
-```
-
-### Join the Kubernetes Cluster Using the Join Command Provided by the Master Node
-
-#### Join the Kubernetes Cluster
-```bash
-sudo kubeadm join <master-ip>:6443 --token <token> --discovery-token-ca-cert-hash sha256:<hash>
-```
-
-## Additional Step on All Nodes
-
-### Update `/etc/hosts` File
-
-#### Update `/etc/hosts` File to Include Kubernetes Node IPs and Hostnames
-```bash
-sudo tee -a /etc/hosts <<EOF
-192.168.1.173   k8smaster.example.net k8smaster
-192.168.1.174   k8sworker1.example.net k8sworker1
-192.168.1.175   k8sworker2.example.net k8sworker2
-EOF
-```
+By following these steps, you should be able to resolve the containerd runtime issue and successfully join your worker node to the Kubernetes cluster. Ensure each step is completed on the worker node before attempting to join the cluster.
 ```
