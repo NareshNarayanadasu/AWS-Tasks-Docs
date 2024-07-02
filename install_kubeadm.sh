@@ -1,7 +1,8 @@
-Certainly! Here's a detailed script with comments explaining each step:
+Certainly! Here's the script formatted in Markdown language with detailed comments explaining each step:
 
 ### On Master Node
 
+```markdown
 ```bash
 #!/bin/bash
 
@@ -39,9 +40,11 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 # Output join command for worker nodes to join the cluster
 kubeadm token create --print-join-command
 ```
+```
 
 ### On Each Worker Node
 
+```markdown
 ```bash
 #!/bin/bash
 
@@ -70,11 +73,11 @@ sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 # Join the Kubernetes cluster using the join command provided by the master node
 sudo kubeadm join <master-ip>:6443 --token <token> --discovery-token-ca-cert-hash sha256:<hash>
 ```
+```
 
 ### Additional Step on All Nodes
 
-Update `/etc/hosts` file:
-
+```markdown
 ```bash
 sudo tee -a /etc/hosts <<EOF
 192.168.1.173   k8smaster.example.net k8smaster
@@ -82,41 +85,30 @@ sudo tee -a /etc/hosts <<EOF
 192.168.1.175   k8sworker2.example.net k8sworker2
 EOF
 ```
+```
 
-Replace `<master-ip>`, `<token>`, and `<hash>` with the values provided by the `kubeadm token create --print-join-command` output on the master node.
+### Explanation
 
-### Explanation of the Script
+The provided Markdown script includes the bash commands required to set up a Kubernetes cluster on Ubuntu 22.04. Here's a breakdown of what each section does:
 
 #### On Master Node
 
-1. **Set hostname**: Sets the hostname for the master node to `k8smaster.example.net`.
-
-2. **Add Kubernetes repository and install dependencies**:
-   - Updates package lists (`apt-get update`).
-   - Installs `curl` and `apt-transport-https` if not already installed.
-   - Downloads the GPG key for the Kubernetes repository and adds the repository to `/etc/apt/sources.list.d/kubernetes.list`.
-   - Updates package lists again to fetch information about newly added repositories.
-   - Installs `kubelet`, `kubeadm`, and `kubectl` (Kubernetes tools).
-   - Holds `kubelet`, `kubeadm`, and `kubectl` at the current version to prevent them from being automatically updated.
-
-3. **Disable swap**: Disables swap usage on the system and updates `/etc/fstab` to comment out any swap entries to ensure swap remains disabled after a reboot.
-
-4. **Initialize Kubernetes master node**: Initializes the Kubernetes control plane on the master node with `kubeadm init`. The `--control-plane-endpoint` option specifies the endpoint used to reach the API server.
-
-5. **Set up kubectl configuration**: Sets up the Kubernetes command-line tool `kubectl` configuration for the `ubuntu` user to allow management of the cluster.
-
-6. **Output join command**: Generates and outputs the command (`kubeadm token create --print-join-command`) that worker nodes can use to join the Kubernetes cluster.
+1. **Set hostname**: Sets the hostname for the master node (`k8smaster.example.net`).
+2. **Add Kubernetes repository and install dependencies**: Adds the Kubernetes repository, installs necessary dependencies (`curl` and `apt-transport-https`), and installs Kubernetes tools (`kubelet`, `kubeadm`, `kubectl`).
+3. **Disable swap**: Turns off swap usage and updates `/etc/fstab` to comment out swap entries.
+4. **Initialize Kubernetes**: Initializes the Kubernetes control plane on the master node using `kubeadm init` with `--control-plane-endpoint` specified.
+5. **Set up kubectl configuration**: Sets up the Kubernetes command-line tool `kubectl` configuration for the `ubuntu` user.
+6. **Output join command**: Prints the command (`kubeadm token create --print-join-command`) for worker nodes to join the cluster.
 
 #### On Each Worker Node
 
 1. **Set hostname**: Sets the hostname for each worker node (`k8sworker1.example.net` or `k8sworker2.example.net`).
+2. **Add Kubernetes repository and install dependencies**: Adds the Kubernetes repository, installs necessary dependencies (`curl` and `apt-transport-https`), and installs Kubernetes tools (`kubelet`, `kubeadm`, `kubectl`).
+3. **Disable swap**: Turns off swap usage and updates `/etc/fstab` to comment out swap entries.
+4. **Join the cluster**: Joins the Kubernetes cluster using the join command provided by the master node (`<master-ip>:6443`, token, and certificate hash).
 
-2. **Add Kubernetes repository and install dependencies**: Similar to the master node, it adds the Kubernetes repository, installs dependencies (`curl` and `apt-transport-https`), and installs `kubelet`, `kubeadm`, and `kubectl`.
+#### Additional Step on All Nodes
 
-3. **Disable swap**: Disables swap usage on the worker node and updates `/etc/fstab` to ensure swap remains disabled after a reboot.
+- **Update `/etc/hosts` file**: Updates the `/etc/hosts` file on all nodes to include the IP addresses and hostnames of all nodes in the Kubernetes cluster (`k8smaster.example.net`, `k8sworker1.example.net`, `k8sworker2.example.net`).
 
-4. **Join the Kubernetes cluster**: Uses the `kubeadm join` command provided by the master node (`<master-ip>:6443` specifies the API server endpoint) along with the token and certificate hash obtained from the master node's `kubeadm init` command output.
-
-### Additional Step on All Nodes
-
-- **Update `/etc/hosts` file**: Updates the `/etc/hosts` file on all nodes to include the IP addresses and hostnames (`k8smaster.example.net`, `k8sworker1.example.net`, `k8sworker2.example.net`) of all nodes in the Kubernetes cluster.
+Ensure to replace `<master-ip>`, `<token>`, and `<hash>` with the actual values obtained from the `kubeadm token create --print-join-command` command output on the master node when setting up your Kubernetes cluster.
