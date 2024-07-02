@@ -1,83 +1,176 @@
-Certainly! Here's the script formatted in Markdown language with detailed comments explaining each step:
-
-### On Master Node
+Sure, here's a Markdown file with all the commands consolidated into one document with detailed comments:
 
 ```markdown
-```bash
-#!/bin/bash
+# Kubernetes Cluster Setup on Ubuntu 22.04
 
-# Set hostname for the master node
+## Master Node Setup
+
+### Set Hostname for the Master Node
+```bash
 sudo hostnamectl set-hostname "k8smaster.example.net"
 exec bash
+```
 
-# Add Kubernetes repository and install dependencies
+### Add Kubernetes Repository and Install Dependencies
+
+#### Update Package Lists
+```bash
 sudo apt-get update
+```
+
+#### Install Dependencies: curl and apt-transport-https
+```bash
 sudo apt-get install -y curl apt-transport-https
+```
 
-# Download Kubernetes repository GPG key and add repository
+### Download Kubernetes Repository GPG Key and Add Repository
+
+#### Download GPG Key
+```bash
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+```
+
+#### Add Kubernetes Repository
+```bash
 echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+```
+
+#### Update Package Lists Again
+```bash
 sudo apt-get update
+```
 
-# Install Kubernetes tools: kubelet, kubeadm, kubectl
+### Install Kubernetes Tools: kubelet, kubeadm, kubectl
+
+#### Install Kubernetes Tools
+```bash
 sudo apt-get install -y kubelet kubeadm kubectl
+```
 
-# Hold Kubernetes tools at current version to prevent automatic updates
+### Hold Kubernetes Tools at Current Version
+```bash
 sudo apt-mark hold kubelet kubeadm kubectl
+```
 
-# Disable swap to meet Kubernetes requirements
+### Disable Swap to Meet Kubernetes Requirements
+
+#### Disable Swap
+```bash
 sudo swapoff -a
+```
+
+#### Comment Out Swap Entries in `/etc/fstab`
+```bash
 sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+```
 
-# Initialize Kubernetes master node with control-plane-endpoint as the master's hostname
+### Initialize Kubernetes Master Node
+
+#### Initialize Kubernetes Control Plane
+```bash
 sudo kubeadm init --control-plane-endpoint=k8smaster.example.net
+```
 
-# Set up kubectl configuration for the ubuntu user
+### Set Up kubectl Configuration for the Ubuntu User
+
+#### Create `.kube` Directory
+```bash
 mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
 
-# Output join command for worker nodes to join the cluster
+#### Copy Kubernetes Configuration to User's `.kube` Directory
+```bash
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+```
+
+#### Set Ownership of `.kube/config` to the Current User
+```bash
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+### Output Join Command for Worker Nodes to Join the Cluster
+
+#### Print Join Command for Worker Nodes
+```bash
 kubeadm token create --print-join-command
 ```
+
+## Worker Node Setup
+
+### Set Hostname for Each Worker Node
+
+#### Set Hostname for First Worker Node
+```bash
+sudo hostnamectl set-hostname "k8sworker1.example.net"
+exec bash
 ```
 
-### On Each Worker Node
-
-```markdown
+#### Set Hostname for Second Worker Node
 ```bash
-#!/bin/bash
-
-# Set hostname for the worker node (adjust for each worker)
-sudo hostnamectl set-hostname "k8sworker1.example.net"  # For the first worker node
-# OR
-sudo hostnamectl set-hostname "k8sworker2.example.net"  # For the second worker node
+sudo hostnamectl set-hostname "k8sworker2.example.net"
 exec bash
+```
 
-# Add Kubernetes repository and install dependencies
+### Add Kubernetes Repository and Install Dependencies (Same as Master Node)
+
+#### Update Package Lists
+```bash
 sudo apt-get update
+```
+
+#### Install Dependencies: curl and apt-transport-https
+```bash
 sudo apt-get install -y curl apt-transport-https
+```
 
-# Download Kubernetes repository GPG key and add repository
+### Download Kubernetes Repository GPG Key and Add Repository (Same as Master Node)
+
+#### Download GPG Key
+```bash
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+```
+
+#### Add Kubernetes Repository
+```bash
 echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+```
+
+#### Update Package Lists Again
+```bash
 sudo apt-get update
+```
 
-# Install Kubernetes tools: kubelet, kubeadm, kubectl
+### Install Kubernetes Tools: kubelet, kubeadm, kubectl (Same as Master Node)
+
+#### Install Kubernetes Tools
+```bash
 sudo apt-get install -y kubelet kubeadm kubectl
+```
 
-# Disable swap to meet Kubernetes requirements
+### Disable Swap to Meet Kubernetes Requirements (Same as Master Node)
+
+#### Disable Swap
+```bash
 sudo swapoff -a
-sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+```
 
-# Join the Kubernetes cluster using the join command provided by the master node
+#### Comment Out Swap Entries in `/etc/fstab`
+```bash
+sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+```
+
+### Join the Kubernetes Cluster Using the Join Command Provided by the Master Node
+
+#### Join the Kubernetes Cluster
+```bash
 sudo kubeadm join <master-ip>:6443 --token <token> --discovery-token-ca-cert-hash sha256:<hash>
 ```
-```
 
-### Additional Step on All Nodes
+## Additional Step on All Nodes
 
-```markdown
+### Update `/etc/hosts` File
+
+#### Update `/etc/hosts` File to Include Kubernetes Node IPs and Hostnames
 ```bash
 sudo tee -a /etc/hosts <<EOF
 192.168.1.173   k8smaster.example.net k8smaster
@@ -89,26 +182,4 @@ EOF
 
 ### Explanation
 
-The provided Markdown script includes the bash commands required to set up a Kubernetes cluster on Ubuntu 22.04. Here's a breakdown of what each section does:
-
-#### On Master Node
-
-1. **Set hostname**: Sets the hostname for the master node (`k8smaster.example.net`).
-2. **Add Kubernetes repository and install dependencies**: Adds the Kubernetes repository, installs necessary dependencies (`curl` and `apt-transport-https`), and installs Kubernetes tools (`kubelet`, `kubeadm`, `kubectl`).
-3. **Disable swap**: Turns off swap usage and updates `/etc/fstab` to comment out swap entries.
-4. **Initialize Kubernetes**: Initializes the Kubernetes control plane on the master node using `kubeadm init` with `--control-plane-endpoint` specified.
-5. **Set up kubectl configuration**: Sets up the Kubernetes command-line tool `kubectl` configuration for the `ubuntu` user.
-6. **Output join command**: Prints the command (`kubeadm token create --print-join-command`) for worker nodes to join the cluster.
-
-#### On Each Worker Node
-
-1. **Set hostname**: Sets the hostname for each worker node (`k8sworker1.example.net` or `k8sworker2.example.net`).
-2. **Add Kubernetes repository and install dependencies**: Adds the Kubernetes repository, installs necessary dependencies (`curl` and `apt-transport-https`), and installs Kubernetes tools (`kubelet`, `kubeadm`, `kubectl`).
-3. **Disable swap**: Turns off swap usage and updates `/etc/fstab` to comment out swap entries.
-4. **Join the cluster**: Joins the Kubernetes cluster using the join command provided by the master node (`<master-ip>:6443`, token, and certificate hash).
-
-#### Additional Step on All Nodes
-
-- **Update `/etc/hosts` file**: Updates the `/etc/hosts` file on all nodes to include the IP addresses and hostnames of all nodes in the Kubernetes cluster (`k8smaster.example.net`, `k8sworker1.example.net`, `k8sworker2.example.net`).
-
-Ensure to replace `<master-ip>`, `<token>`, and `<hash>` with the actual values obtained from the `kubeadm token create --print-join-command` command output on the master node when setting up your Kubernetes cluster.
+This Markdown document provides a structured approach to setting up a Kubernetes cluster on Ubuntu 22.04. Each section includes bash commands with detailed comments explaining their purpose. Adjustments should be made as per specific environment requirements, such as hostnames, IP addresses, and Kubernetes versions.
