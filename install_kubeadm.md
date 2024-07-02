@@ -1,4 +1,3 @@
-Sure, here's a Markdown file with all the commands consolidated into one document with detailed comments:
 
 ```markdown
 # Kubernetes Cluster Setup on Ubuntu 22.04
@@ -179,7 +178,3 @@ sudo tee -a /etc/hosts <<EOF
 EOF
 ```
 ```
-
-### Explanation
-
-This Markdown document provides a structured approach to setting up a Kubernetes cluster on Ubuntu 22.04. Each section includes bash commands with detailed comments explaining their purpose. Adjustments should be made as per specific environment requirements, such as hostnames, IP addresses, and Kubernetes versions.
