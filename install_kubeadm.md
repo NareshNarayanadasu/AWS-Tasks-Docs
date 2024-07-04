@@ -89,6 +89,9 @@ sudo systemctl status containerd
 ```
 
 ### 8. Add Kubernetes Repository
+```bash
+kubeadm init --cri-socket unix:///var/run/cri-dockerd.sock
+```
 
 #### Download Kubernetes Repository GPG Key
 ```bash
@@ -141,7 +144,12 @@ sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 #### Use kubeadm to Join the Cluster
 ```bash
 # Join the Kubernetes cluster using the provided join command
-sudo kubeadm join k8smaster.example.net:6443 --token 7fcot2.3lzodp5r8lua51dc --discovery-token-ca-cert-hash sha256:584987ee7ff21143dbcd01574d12baa2772571174e5fb33d1368e6b5fb420333
+sudo kubeadm join k8smaster.example.net:6443 --token 7fcot2.3lzodp5r8lua51dc --discovery-token-ca-cert-hash sha256:584987ee7ff21143dbcd01574d12baa2772571174e5fb33d1368e6b5fb420333 --cri-socket unix:///var/run/cri-dockerd.sock
+
+# 
+## Apply Pod Network
+kubectl apply -f https://reweave.azurewebsites.net/k8s/v1.30/net.yaml
+
 ```
 
 By following these steps, you should be able to resolve the containerd runtime issue and successfully join your worker node to the Kubernetes cluster. Ensure each step is completed on the worker node before attempting to join the cluster.
