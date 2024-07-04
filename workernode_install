@@ -76,3 +76,5 @@ log "16. Joining the Kubernetes Cluster"
 #sudo kubeadm join k8smaster.example.net:6443 --token <your-token> --discovery-token-ca-cert-hash sha256:<your-hash>
 
 #log "Kubernetes Worker Node setup is complete."
+
+# use join command after the installaion
