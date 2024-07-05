@@ -58,6 +58,9 @@ kubeadm init --cri-socket unix:///var/run/cri-dockerd.sock
 # Configure KUBECONFIG environment variable
 echo 'export KUBECONFIG=/etc/kubernetes/admin.conf' >> ~/.bashrc
 source ~/.bashrc
+
+## Apply Pod Network
+kubectl apply -f https://reweave.azurewebsites.net/k8s/v1.30/net.yaml
 ```
 
 ### Setting up Worker Node (Slave Node)
