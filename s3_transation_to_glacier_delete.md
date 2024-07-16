@@ -6,22 +6,27 @@ ways to apply the S3 lifecycle policy using the AWS CLI and different scripting 
 
 ```json
 {
-  "Rules": [
-    {
-      "ID": "Transition to Glacier and Expire",
-      "Prefix": "",
-      "Status": "Enabled",
-      "Transitions": [
+    "Rules": [
         {
-          "Days": 30,
-          "StorageClass": "GLACIER"
+            "ID": "MoveToGlacierAndExpire",
+            "Filter": {
+                "Prefix": ""
+            },
+            "Status": "Enabled",
+            "Transitions": [
+                {
+                    "Days": 30,
+                    "StorageClass": "GLACIER"
+                }
+            ],
+            "Expiration": {
+                "Days": 365
+            },
+            "NoncurrentVersionExpiration": {
+                "NoncurrentDays": 365
+            }
         }
-      ],
-      "Expiration": {
-        "Days": 365
-      }
-    }
-  ]
+    ]
 }
 ```
 
