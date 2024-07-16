@@ -119,6 +119,10 @@ sudo dpkg -i cri-dockerd_0.3.14.3-0.ubuntu-jammy_amd64.deb
 # Optionally switch to root user
 sudo -i
 
+# Configure KUBECONFIG environment variable
+echo 'export KUBECONFIG=/etc/kubernetes/admin.conf' >> ~/.bashrc
+source ~/.bashrc
+
 # Join the worker node to the Kubernetes cluster (replace with your actual token and IP)
 kubeadm join 172.31.6.228:6443 --token s54isb.m67vqx5curova6oq --discovery-token-ca-cert-hash sha256:339532518e17af56674e6915e90289b4b11a37322fa482520a8a4b78eaa1c5f4 --cri-socket unix:///var/run/cri-dockerd.sock
 ```
