@@ -1,4 +1,3 @@
-Certainly! Here's the guide formatted in Markdown for easier readability and usage:
 
 ---
 
@@ -99,4 +98,3 @@ Save the Lambda function by clicking "Deploy" in the upper right corner.
 
 ---
 
-This Markdown guide provides a structured approach to creating a Lambda function to manage EC2 instances based on triggers from EventBridge (CloudWatch Events). Adjust the instance ID and permissions as per your specific requirements.
