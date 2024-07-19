@@ -1,0 +1,37 @@
+pipeline {
+    agent none
+
+    stages {
+        stage('Build and Test') {
+            agent { label 'maven_node' }
+            stages {
+                stage('SCM') {
+                    steps {
+                        git branch: 'main', url: 'https://github.com/spring-projects/spring-petclinic.git'
+                    }
+                }
+                stage('Build') {
+                    steps {
+                        sh 'mvn package'
+                    }
+                    post {
+                        success {
+                            echo 'Archiving Artifacts now'
+                            archiveArtifacts artifacts: '**/*.jar'
+                        }
+                    }
+                }
+                stage('Debug Test Reports') {
+                    steps {
+                        sh 'ls -la target/surefire-reports/'
+                    }
+                }
+                stage('JUnit') {
+                    steps {
+                        junit 'target/surefire-reports/*.xml'
+                    }
+                }
+            }
+        }
+    }
+}
