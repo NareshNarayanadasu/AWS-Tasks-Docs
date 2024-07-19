@@ -113,4 +113,6 @@ sudo cat /var/lib/jenkins/secrets/initialAdminPassword
 Follow the instructions on the Jenkins web interface to complete the setup.
 
 These steps will install Jenkins on your Debian-based system, and you will be able to manage Jenkins through the web interface.
+add jenkins to the system
+
 
